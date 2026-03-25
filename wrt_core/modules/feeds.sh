@@ -18,6 +18,11 @@ update_feeds() {
         echo "src-git passwall https://github.com/Openwrt-Passwall/openwrt-passwall;main" >>"$FEEDS_PATH"
     fi
 
+    if ! grep -q "openwrt-passwall2" "$FEEDS_PATH"; then
+        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
+        echo "src-git passwall2 https://github.com/Openwrt-Passwall/openwrt-passwall2;main" >>"$FEEDS_PATH"
+    fi
+
     if ! grep -q "openwrt_bandix" "$BUILD_DIR/$FEEDS_CONF"; then
         [ -z "$(tail -c 1 "$BUILD_DIR/$FEEDS_CONF")" ] || echo "" >>"$BUILD_DIR/$FEEDS_CONF"
         echo 'src-git openwrt_bandix https://github.com/timsaya/openwrt-bandix.git;main' >>"$BUILD_DIR/$FEEDS_CONF"
@@ -44,6 +49,8 @@ install_feeds() {
                 install_fullconenat
             elif [[ $(basename "$dir") == "passwall" ]]; then
                 install_passwall
+            elif [[ $(basename "$dir") == "passwall2" ]]; then
+                install_passwall2
             else
                 ./scripts/feeds install -f -ap $(basename "$dir")
             fi

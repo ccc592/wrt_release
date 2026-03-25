@@ -86,6 +86,11 @@ install_passwall() {
     ./scripts/feeds install -p passwall -f luci-app-passwall
 }
 
+install_passwall2() {
+    echo "正在从官方仓库安装 luci-app-passwall2..."
+    ./scripts/feeds install -p passwall2 -f luci-app-passwall2
+}
+
 install_fullconenat() {
     if [ ! -d $BUILD_DIR/package/network/utils/fullconenat-nft ]; then
         ./scripts/feeds install -p small8 -f fullconenat-nft
