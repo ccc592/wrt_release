@@ -60,7 +60,6 @@ main() {
     update_tcping
     add_ax6600_led
     set_custom_task
-    apply_passwall_tweaks
     update_nss_pbuf_performance
     set_build_signature
     update_nss_diag
@@ -68,7 +67,6 @@ main() {
     fix_compile_coremark
     update_dnsmasq_conf
     add_backup_info_to_sysupgrade
-    update_mosdns_deconfig
     fix_quickstart
     update_oaf_deconfig
     add_timecontrol
@@ -97,6 +95,7 @@ main() {
     fix_openssl_ktls
     fix_opkg_check
     fix_quectel_cm
+    fix_ath11k_ampdu_tid
     install_pbr_cmcc
     fix_pbr_ip_forward
     # apply_hash_fixes

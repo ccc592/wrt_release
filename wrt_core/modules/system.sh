@@ -638,3 +638,18 @@ remove_tweaked_packages() {
         fi
     fi
 }
+
+fix_ath11k_ampdu_tid() {
+    local patch_file="$BASE_PATH/patches/900-fix-ath11k-ampdu-tid.patch"
+    local ath11k_patches_dir="$BUILD_DIR/package/kernel/mac80211/patches/nss/ath11k"
+
+    if [ ! -f "$patch_file" ]; then
+        echo "Warning: ath11k AMPDU TID patch not found: $patch_file"
+        return 0
+    fi
+
+    if [ -d "$ath11k_patches_dir" ]; then
+        install -Dm644 "$patch_file" "$ath11k_patches_dir/900-fix-ath11k-ampdu-tid.patch"
+        echo "已安装 ath11k AMPDU TID 修复补丁 (backport from Linux 7.0-rc7)"
+    fi
+}
