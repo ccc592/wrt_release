@@ -5,7 +5,7 @@ remove_unwanted_packages() {
         "luci-app-passwall" "luci-app-ddns-go" "luci-app-rclone" "luci-app-ssr-plus"
         "luci-app-vssr" "luci-app-daed" "luci-app-dae" "luci-app-alist" "luci-app-homeproxy"
         "luci-app-haproxy-tcp" "luci-app-openclash" "luci-app-mihomo" "luci-app-appfilter"
-        "luci-app-msd_lite" "luci-app-unblockneteasemusic"
+        "luci-app-msd_lite" "luci-app-unblockneteasemusic" "luci-app-adguardhome"
     )
     local packages_net=(
         "haproxy" "xray-core" "xray-plugin" "dns2socks" "alist" "hysteria"
@@ -76,7 +76,7 @@ install_small8() {
         v2dat mosdns luci-app-mosdns adguardhome luci-app-adguardhome ddns-go \
         luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd luci-app-store quickstart \
         luci-app-quickstart luci-app-istorex luci-app-cloudflarespeedtest netdata luci-app-netdata \
-        lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
+        lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic \
         tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
         msd_lite luci-app-msd_lite cups luci-app-cupsd
 }
@@ -89,6 +89,11 @@ install_passwall() {
 install_passwall2() {
     echo "正在从官方仓库安装 luci-app-passwall2..."
     ./scripts/feeds install -p passwall2 -f luci-app-passwall2
+}
+
+install_nikki() {
+    echo "正在从官方仓库安装 nikki..."
+    ./scripts/feeds install -p nikki -f nikki luci-app-nikki
 }
 
 install_fullconenat() {
@@ -334,6 +339,7 @@ _sync_luci_lib_docker() {
 update_dockerman() {
     local path="$BUILD_DIR/feeds/luci/applications/luci-app-dockerman"
     local repo_url="https://github.com/lisaac/luci-app-dockerman.git"
+
     if [ -d "$path" ]; then
         echo "正在更新 dockerman..."
         _sync_luci_lib_docker || return
@@ -356,6 +362,10 @@ update_dockerman() {
         cd .. || return
         \rm -rf dockerman
         cd "$BUILD_DIR"
+
+        if declare -F docker_stack_sync_dockerman_nftables_compat >/dev/null 2>&1; then
+            docker_stack_sync_dockerman_nftables_compat "$BUILD_DIR" "0" || return 1
+        fi
 
         echo "dockerman 更新完成"
     fi
