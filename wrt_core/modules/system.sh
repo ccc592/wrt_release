@@ -640,16 +640,35 @@ remove_tweaked_packages() {
 }
 
 fix_ath11k_ampdu_tid() {
-    local patch_file="$BASE_PATH/patches/900-fix-ath11k-ampdu-tid.patch"
-    local ath11k_patches_dir="$BUILD_DIR/package/kernel/mac80211/patches/nss/ath11k"
+    local nss_patch="$BUILD_DIR/package/kernel/mac80211/patches/nss/ath11k/235-003-ath11k-add-AP_VLAN-vif-support-for-WDS-offload-in-NSS-offload.patch"
 
-    if [ ! -f "$patch_file" ]; then
-        echo "Warning: ath11k AMPDU TID patch not found: $patch_file"
+    if [ ! -f "$nss_patch" ]; then
+        echo "Warning: ath11k NSS patch not found, skipping AMPDU TID fix"
         return 0
     fi
 
-    if [ -d "$ath11k_patches_dir" ]; then
-        install -Dm644 "$patch_file" "$ath11k_patches_dir/900-fix-ath11k-ampdu-tid.patch"
-        echo "已安装 ath11k AMPDU TID 修复补丁 (backport from Linux 7.0-rc7)"
-    fi
+    echo "正在修复 ath11k AMPDU TID bug (backport from Linux 7.0-rc7)..."
+
+    # Fix 1: Replace variable declarations (dma_addr_t paddr; bool active; -> struct dp_rx_tid *rx_tid;)
+    sed -i '/int ath11k_dp_rx_ampdu_stop/,/^[+-]}/{
+        s/^+\tint vdev_id = arvif->vdev_id;/+\tstruct dp_rx_tid *rx_tid;\n+\tint vdev_id = arvif->vdev_id;/
+        /^-\tstruct ath11k_sta \*arsta/d
+        /^+\tdma_addr_t paddr;/d
+        /^+\tbool active;/d
+        /^ \tdma_addr_t paddr;/d
+        /^ \tbool active;/d
+    }' "$nss_patch"
+
+    # Fix 2: Replace paddr/active usage with rx_tid
+    sed -i 's/^+\tpaddr = peer->rx_tid\[params->tid\]\.paddr;$/+\trx_tid = \&peer->rx_tid[params->tid];/' "$nss_patch"
+    sed -i '/^+\tactive = peer->rx_tid\[params->tid\]\.active;/d' "$nss_patch"
+    sed -i 's/^+\tif (!active) {$/+\tif (!rx_tid->active) {/' "$nss_patch"
+
+    # Fix 3: Fix the core bug - pass rx_tid instead of peer->rx_tid
+    sed -i 's/peer, peer->rx_tid, 1, 0, false/peer, rx_tid, 1, 0, false/' "$nss_patch"
+
+    # Fix 4: Replace paddr reference in wmi call
+    sed -i 's/params->sta->addr, paddr,$/params->sta->addr,\n+\t\t\t\t\t     rx_tid->paddr,/' "$nss_patch"
+
+    echo "ath11k AMPDU TID 修复已应用到 NSS 补丁"
 }
